@@ -4,9 +4,12 @@ Jinja2 Documentation:    https://jinja.palletsprojects.com/
 Werkzeug Documentation:  https://werkzeug.palletsprojects.com/
 This file contains the routes for your application.
 """
-
-from app import app
-from flask import render_template, request, redirect, url_for
+import os
+from app import app, db
+from .forms import NewPropertyForm
+from .models import Property
+from flask import render_template, request, redirect, url_for, flash
+from werkzeug.utils import secure_filename, send_from_directory
 
 
 ###
@@ -25,6 +28,37 @@ def about():
     return render_template('about.html', name="Mary Jane")
 
 
+@app.route('/properties/create', methods=["POST", "GET"])
+def new_property():
+    """Render the website's about new property page."""
+    form = NewPropertyForm()
+    if form.validate_on_submit():
+        [title, description, no_rooms, no_bathrooms, price, property_type, location, photo, token] = form
+        filename = secure_filename(photo.data.filename)
+        photo.data.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+        p = Property(title=title.data, description=description.data, no_rooms=no_rooms.data,
+                     no_bathrooms=no_bathrooms.data, price=price.data, property_type=property_type.data,
+                     location=location.data, photo=filename)
+        db.session.add(p)
+        db.session.commit()
+        flash("Property Added Successfully")
+        return redirect(url_for('properties'))
+    return render_template('new-property.html', form=form)
+
+
+@app.route('/properties')
+def properties():
+    """Render the website's properties page."""
+    Properties = db.session.execute(db.select(Property)).scalars()
+    return render_template('properties.html', properties=Properties)
+
+@app.route('/properties/<id>')
+def get_property(id):
+    """Render the website's properties page based on an ID."""
+    PropertyData = db.session.execute(db.select(Property).filter_by(id=id)).scalar_one()
+    return render_template('property.html', property=PropertyData)
+
+
 ###
 # The functions below should be applicable to all Flask apps.
 ###
@@ -37,6 +71,7 @@ def flash_errors(form):
                 getattr(form, field).label.text,
                 error
             ), 'danger')
+
 
 @app.route('/<file_name>.txt')
 def send_text_file(file_name):

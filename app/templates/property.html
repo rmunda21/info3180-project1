@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+{% block main %}
+<div class="property-data">
+    <img src="{{url_for('static',filename='uploads/'+property.photo)}}" alt="">
+    <div class="property-data-details">
+        <h4 class="property-title">{{property.title}}</h4>
+        <div class="two-way-column white weight-500">
+            <p class="property-price">${{property.price}}</p>
+            <p class="property-type">{{property.property_type}}</p>
+        </div>
+        <p class="property-desc">{{property.description}}</p>
+        <div class="two-way-column extra-padding">
+            <p class="property_rooms"><i class="fi fi-rr-bed"></i>{{property.no_rooms}} Bedroom(s)</p>
+            <p class="property-bathrooms"><i class="fi fi-rr-hot-tub"></i>{{property.no_bathrooms}} Bathroom(s)</p>
+        </div>
+        <p class="property-location"><i class="fi fi-rr-marker"></i>{{property.location}}</p>
+        <button class="email-btn white weight-500">Email Realtor</button>
+    </div>
+</div>
+{% endblock %}
